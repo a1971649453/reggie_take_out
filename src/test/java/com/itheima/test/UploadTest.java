@@ -1,0 +1,17 @@
+package com.itheima.test;
+
+import org.junit.jupiter.api.Test;
+
+/**
+ * @author 金宗文
+ * @version 1.0
+ */
+public class UploadTest {
+
+    @Test
+    public void test1(){
+        String fileName = "ereere.jpg";
+        String suffix = fileName.substring(fileName.lastIndexOf("."));
+        System.out.println(suffix);
+    }
+}
