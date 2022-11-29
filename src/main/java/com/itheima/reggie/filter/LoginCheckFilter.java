@@ -33,7 +33,7 @@ public class LoginCheckFilter implements Filter {
         String requestURI = req.getRequestURI();
         log.info("拦截到请求 {}",requestURI);
         //定义不需要处理的请求路径
-        String[] urls = {"/employee/login", "/employee/logout","/backend/**","/front/**","/common/**"};
+        String[] urls = {"/employee/login", "/employee/logout","/backend/**","/front/**","/common/**","/user/sendMsg","/user/login"};
 //        B. 判断本次请求, 是否需要登录, 才可以访问
         boolean check = check(requestURI, urls);
 //        C.如果不需要，则直接放行
@@ -42,7 +42,7 @@ public class LoginCheckFilter implements Filter {
             filterChain.doFilter(servletRequest, servletResponse);
             return;
         }
-//        D. 判断登录状态，如果已登录，则直接放行
+//        D-1. 判断登录状态，如果已登录，则直接放行
         if (req.getSession().getAttribute("employee") != null){
             Long empId = (Long) req.getSession().getAttribute("employee");
             log.info("用户已登录,用户id为{}",empId);
@@ -50,6 +50,17 @@ public class LoginCheckFilter implements Filter {
             filterChain.doFilter(servletRequest, servletResponse);
             return;
         }
+
+        // D-2. 判断移动端登录状态，如果已登录，则直接放行
+        if (req.getSession().getAttribute("user") != null){
+            log.info("用户已登录，用户id为：{}",req.getSession().getAttribute("user"));
+            Long userId = (Long) req.getSession().getAttribute("user");
+            BaseContext.setCurrentId(userId);
+            filterChain.doFilter(req,rep);
+            return;
+        }
+
+        //
 
         log.info("用户未登录");
 //        E. 如果未登录, 则返回未登录结果,通过输出流向客户端页面相应数据
