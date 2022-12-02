@@ -6,6 +6,7 @@ import com.itheima.reggie.common.R;
 import com.itheima.reggie.dto.DishDto;
 import com.itheima.reggie.entity.Category;
 import com.itheima.reggie.entity.Dish;
+import com.itheima.reggie.entity.DishFlavor;
 import com.itheima.reggie.service.CategoryService;
 import com.itheima.reggie.service.DishFlavorService;
 import com.itheima.reggie.service.DishService;
@@ -70,11 +71,16 @@ public class DishController {
         dishService.page(pageInfo,queryWrapper);
         //对象拷贝 忽略records
         BeanUtils.copyProperties(pageInfo,dishDtoPage,"records");
+
         List<Dish> records = pageInfo.getRecords();
+
         List<DishDto> list = records.stream().map((item) ->{
             DishDto dishDto = new DishDto();
+
             BeanUtils.copyProperties(item,dishDto);
+
             Long categoryId = item.getCategoryId();//分类ID
+
             Category category = categoryService.getById(categoryId);
             if (category != null) {
                 String categoryName = category.getName();
@@ -117,8 +123,25 @@ public class DishController {
      * @param
      * @return
      */
+//    @GetMapping("/list")
+//    public R<List<Dish>> list(Dish dish){
+//        //构造查询条件对象
+//        LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
+//        //添加过滤条件
+//        queryWrapper.eq(dish.getCategoryId() != null,Dish::getCategoryId,dish.getCategoryId());
+//        //如果是停售,则不显示
+//        queryWrapper.eq(Dish::getStatus,1);
+//        //添加排序条件
+//        queryWrapper.orderByAsc(Dish::getSort).orderByDesc(Dish::getUpdateTime);
+//        List<Dish> list = dishService.list(queryWrapper);
+//
+//        return R.success(list);
+//    }
+
+
+
     @GetMapping("/list")
-    public R<List<Dish>> list(Dish dish){
+    public R<List<DishDto>> list(Dish dish){
         //构造查询条件对象
         LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
         //添加过滤条件
@@ -128,8 +151,34 @@ public class DishController {
         //添加排序条件
         queryWrapper.orderByAsc(Dish::getSort).orderByDesc(Dish::getUpdateTime);
         List<Dish> list = dishService.list(queryWrapper);
+        List<DishDto> dishDtoList = list.stream().map((item) ->{
+            DishDto dishDto = new DishDto();
 
-        return R.success(list);
+            BeanUtils.copyProperties(item,dishDto);
+
+            Long categoryId = item.getCategoryId();//分类ID
+
+            Category category = categoryService.getById(categoryId);
+            if (category != null) {
+                String categoryName = category.getName();
+                dishDto.setCategoryName(categoryName);
+
+
+            }
+            //查询口味数据
+            //当前菜品id
+            Long id = item.getId();
+            //查询口味数据
+            LambdaQueryWrapper<DishFlavor> favorWrapper = new LambdaQueryWrapper<>();
+            favorWrapper.eq(DishFlavor::getDishId,id);
+            //口味集合
+            List<DishFlavor> flavorList = dishFlavorService.list(favorWrapper);
+            //将口味数据设置到dishDto中
+            dishDto.setFlavors(flavorList);
+            return dishDto;
+        }).collect(Collectors.toList());
+
+        return R.success(dishDtoList);
     }
 
 
