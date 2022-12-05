@@ -1,3 +1,8 @@
 # Project exclude paths
 /target/
 /src/main/java/com/itheima/reggie/utils/SMSUtils.java
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
